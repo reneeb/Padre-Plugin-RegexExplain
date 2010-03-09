@@ -1,7 +1,58 @@
 package Padre::Plugin::RegexExplain;
 
-use warnings;
+use 5.008;
+
 use strict;
+use warnings;
+
+use YAPE::Regex::Explain;
+use Padre::Constant ();
+use Padre::Plugin   ();
+use Padre::Wx       ();
+use Wx::Perl::Dialog;
+
+our $VERSION = '0.01';
+
+sub plugin_name { return 'RegexExplain' }
+
+sub padre_interface { 'Padre::Plugin' => 0.43 }
+
+sub menu_plugins_simple {
+    my $self = shift;
+
+    return $self->plugin_name => [
+        'Explain' => sub { $self->explain },
+    ]
+}
+
+sub explain {
+    my $self = shift;
+
+    my $editor = $self->current->editor;
+    my $regex  = $editor->GetSelectedText || '';
+
+    my $expl   = YAPE::Regex::Explain->new( $regex )->explain;
+
+    my $layout = [
+        [
+            [ 'Wx::TextCtrl', 'regex_explain', $expl  ],
+        ],
+        [
+            [ 'Wx::Button',   'ok',            Wx::wxID_OK     ],
+        ],
+    ];
+
+    my $dialog = Wx::Perl::Dialog->new(
+        parent => $self->current,
+        title  => 'Regex',
+        layout => $layout,
+        width  => [200, 250],
+    );
+
+    return if not $dialog->show_modal;
+}
+
+
 
 =head1 NAME
 
@@ -10,11 +61,6 @@ Padre::Plugin::RegexExplain - The great new Padre::Plugin::RegexExplain!
 =head1 VERSION
 
 Version 0.01
-
-=cut
-
-our $VERSION = '0.01';
-
 
 =head1 SYNOPSIS
 
@@ -27,27 +73,6 @@ Perhaps a little code snippet.
     my $foo = Padre::Plugin::RegexExplain->new();
     ...
 
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
-
 =head1 AUTHOR
 
 Renee Baecker, C<< <module at renee-baecker.de> >>
@@ -57,8 +82,6 @@ Renee Baecker, C<< <module at renee-baecker.de> >>
 Please report any bugs or feature requests to C<bug-padre::plugin::regexexplain at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Padre::Plugin::RegexExplain>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
 
 
 =head1 SUPPORT
