@@ -9,7 +9,9 @@ use YAPE::Regex::Explain;
 use Padre::Constant ();
 use Padre::Plugin   ();
 use Padre::Wx       ();
-use Wx::Perl::Dialog;
+use Wx qw(:everything);
+
+our @ISA = qw(Padre::Plugin);
 
 our $VERSION = '0.01';
 
@@ -33,23 +35,49 @@ sub explain {
 
     my $expl   = YAPE::Regex::Explain->new( $regex )->explain;
 
-    my $layout = [
-        [
-            [ 'Wx::TextCtrl', 'regex_explain', $expl  ],
-        ],
-        [
-            [ 'Wx::Button',   'ok',            Wx::wxID_OK     ],
-        ],
-    ];
-
-    my $dialog = Wx::Perl::Dialog->new(
-        parent => $self->current,
-        title  => 'Regex',
-        layout => $layout,
-        width  => [200, 250],
+    my $dialog = Wx::Dialog->new(
+        $self->main,
+        -1,
+        'Regex',
+        [ -1, -1 ],
+        [ 560, 330 ],
+        Wx::wxDEFAULT_FRAME_STYLE,
     );
+        
+    my $main_sizer   = Wx::GridBagSizer->new( 2, 0 );
+    my $text         = Wx::TextCtrl->new(
+        $dialog,
+        -1,
+        $expl,
+        [-1,-1],
+        [ 540, 250 ],
+        Wx::wxTE_MULTILINE | Wx::wxTE_READONLY,
+    );
+    
+    my $cur_font   = $text->GetFont;
+    my $fixed_font = Wx::Font->new(
+        $cur_font->GetPointSize,
+        Wx::wxFONTFAMILY_TELETYPE,
+        $cur_font->GetStyle,
+        $cur_font->GetWeight,
+        $cur_font->GetUnderlined,
+    );
+    
+    $text->SetFont( $fixed_font );
+    $text->SetSelection( 0, 0 );
+    
+    my $size   = Wx::Button::GetDefaultSize;
+    my $ok_btn = Wx::Button->new( $dialog, Wx::wxID_OK, '', Wx::wxDefaultPosition, $size );
+    
+    $main_sizer->Add( $text, Wx::GBPosition->new( 0, 0 ),
+                Wx::GBSpan->new(1,1), wxLEFT | wxALIGN_CENTER_VERTICAL , 2);
+    $main_sizer->Add( $ok_btn, Wx::GBPosition->new( 1, 0 ),
+                Wx::GBSpan->new(1,1), wxLEFT | wxALIGN_CENTER_VERTICAL , 2);
 
-    return if not $dialog->show_modal;
+    $dialog->SetSizer( $main_sizer );
+    $dialog->SetAutoLayout(1);
+
+    $dialog->ShowModal;
 }
 
 
