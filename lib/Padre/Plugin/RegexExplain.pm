@@ -13,7 +13,7 @@ use Wx qw(:everything);
 
 our @ISA = qw(Padre::Plugin);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub plugin_name { return 'RegexExplain' }
 
